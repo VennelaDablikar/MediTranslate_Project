@@ -14,3 +14,7 @@ backend/app/static/audio/*.mp3
 # OS
 .DS_Store
 Thumbs.db
+
+# Secrets
+.env
+backend/app/config/vision_key.json

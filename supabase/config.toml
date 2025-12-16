@@ -1,0 +1,4 @@
+project_id = "meditranslate"
+
+[functions]
+process_prescription = { verify_jwt = false }

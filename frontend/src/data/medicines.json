@@ -1,0 +1,92 @@
+{
+    "paracetamol": {
+        "english": {
+            "name": "Paracetamol",
+            "explanation": "Fever and pain relief medicine. Take as prescribed."
+        },
+        "hindi": {
+            "name": "पैरासिटामोल",
+            "explanation": "बुखार और दर्द की दवा। डॉक्टर के निर्देशानुसार लें।"
+        },
+        "tamil": {
+            "name": "பாராசிட்டமால்",
+            "explanation": "காய்ச்சல் மற்றும் வலி மருந்து. மருத்துவர் பரிந்துரைத்தபடி எடுக்கவும்."
+        },
+        "telugu": {
+            "name": "పారాసిటమాల్",
+            "explanation": "జ్వరం మరియు నొప్పి మందు. వైద్యుడు సూచించినట్లు తీసుకోండి."
+        }
+    },
+    "azithromycin": {
+        "english": {
+            "name": "Azithromycin",
+            "explanation": "Antibiotic used to treat various types of infections."
+        },
+        "hindi": {
+            "name": "एज़िथ्रोमाइसिन",
+            "explanation": "विभिन्न प्रकार के संक्रमणों के इलाज के लिए इस्तेमाल की जाने वाली एंटीबायोटिक।"
+        },
+        "tamil": {
+            "name": "அசித்ரோமைசின்",
+            "explanation": "பல்வேறு வகையான தொற்றுகளுக்கு சிகிச்சையளிக்கப் பயன்படும் ஆண்டிபயாடிக்."
+        },
+        "telugu": {
+            "name": "అజిత్రోమైసిన్",
+            "explanation": "వివిధ రకాల ఇన్ఫెక్షన్లకు చికిత్స చేయడానికి ఉపయోగించే యాంటీబయాటిక్."
+        }
+    },
+    "metformin": {
+        "english": {
+            "name": "Metformin",
+            "explanation": "Medicine used to treat type 2 diabetes."
+        },
+        "hindi": {
+            "name": "मेटफॉर्मिन",
+            "explanation": "टाइप 2 मधुमेह (सुगर) के इलाज के लिए इस्तेमाल की जाने वाली दवा।"
+        },
+        "tamil": {
+            "name": "மெட்ஃபோர்மின்",
+            "explanation": "வகை 2 நீரிழிவு நோய்க்கு சிகிச்சையளிக்கப் பயன்படும் மருந்து."
+        },
+        "telugu": {
+            "name": "మెట్‌ఫార్మిన్",
+            "explanation": "టైప్ 2 డయాబెటిస్ చికిత్సకు ఉపయోగించే మందు."
+        }
+    },
+    "amoxicillin": {
+        "english": {
+            "name": "Amoxicillin",
+            "explanation": "Antibiotic used to treat bacterial infections."
+        },
+        "hindi": {
+            "name": "एमोक्सिसिलिन",
+            "explanation": "बैक्टीरियल संक्रमण के इलाज के लिए इस्तेमाल की जाने वाली एंटीबायोटिक।"
+        },
+        "tamil": {
+            "name": "அமாக்சிகிலின்",
+            "explanation": "பாக்டீரியா தொற்றுகளுக்கு சிகிச்சையளிக்கப் பயன்படும் ஆண்டிபயாடிக்."
+        },
+        "telugu": {
+            "name": "అమోక్సిసిలిన్",
+            "explanation": "బాక్టీరియల్ ఇన్ఫెక్షన్లకు చికిత్స చేయడానికి ఉపయోగించే యాంటీబయాటిక్."
+        }
+    },
+    "pantoprazole": {
+        "english": {
+            "name": "Pantoprazole",
+            "explanation": "Medicine used to treat acid reflux and stomach ulcers."
+        },
+        "hindi": {
+            "name": "पैंटोप्राज़ोल",
+            "explanation": "एसिड रिफ्लक्स और पेट के अल्सर के इलाज के लिए इस्तेमाल की जाने वाली दवा।"
+        },
+        "tamil": {
+            "name": "பான்டோபிரசோல்",
+            "explanation": "அமிலத் தன்மை மற்றும் வயிற்றுப் புண்களுக்கு சிகிச்சையளிக்கப் பயன்படும் மருந்து."
+        },
+        "telugu": {
+            "name": "పాంటోప్రజోల్",
+            "explanation": "యాసిడ్ రీఫ్లక్స్ మరియు కడుపు పూతల చికిత్సకు ఉపయోగించే మందు."
+        }
+    }
+}

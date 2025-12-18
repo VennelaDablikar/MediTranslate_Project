@@ -68,52 +68,27 @@ except ImportError as e:
 # ============================================================================
 # DRUG LEXICON (Indian market - common generic and brand names)
 # ============================================================================
-COMMON_DRUGS = [
-    # Analgesics
-    "paracetamol", "acetaminophen", "ibuprofen", "aspirin", "naproxen",
-    "diclofenac", "indomethacin", "piroxicam", "meloxicam",
-    
-    # Antibiotics
-    "amoxicillin", "amoxycillin", "ampicillin", "penicillin", "cephalexin",
-    "ciprofloxacin", "norfloxacin", "ofloxacin", "levofloxacin",
-    "azithromycin", "erythromycin", "doxycycline", "tetracycline",
-    "trimethoprim", "sulfamethoxazole", "cotrimoxazole",
-    
-    # Antihistamines
-    "cetirizine", "fexofenadine", "loratadine", "diphenhydramine",
-    "chlorpheniramine", "promethazine",
-    
-    # Antacids / GI
-    "omeprazole", "ranitidine", "famotidine", "cimetidine",
-    "pantoprazole", "lansoprazole",
-    "metoclopramide", "domperidone",
-    
-    # Antidiarrheal
-    "loperamide", "diphenoxylate",
-    
-    # Antiemetic
-    "ondansetron", "granisetron",
-    
-    # Antihypertensive
-    "amlodipine", "enalapril", "lisinopril", "metoprolol", "atenolol",
-    "hydrochlorothiazide", "furosemide", "spironolactone",
-    
-    # Anti-diabetic
-    "metformin", "glipizide", "glyburide", "pioglitazone", "sitagliptin",
-    
-    # Anticoagulant
-    "aspirin", "warfarin", "heparin",
-    
-    # Thyroid
-    "levothyroxine", "thyroxine",
-    
-    # Supplements / Vitamins
-    "vitamin c", "vitamin d", "vitamin b12", "folic acid", "iron",
-    "calcium", "magnesium", "zinc", "multivitamin",
-    
-    # Other common
-    "loratadine", "cough syrup", "vitamin", "syrup", "cream", "ointment",
-]
+import json
+
+# ============================================================================
+# DRUG LEXICON (Loaded from external JSON)
+# ============================================================================
+def load_common_drugs():
+    """Load drug lexicon from medicines.json"""
+    try:
+        json_path = Path(__file__).parent.parent / "data" / "medicines.json"
+        with open(json_path, "r") as f:
+            drugs = json.load(f)
+            # Normalize for matching
+            return [d.lower() for d in drugs]
+    except Exception as e:
+        print(f"[WARNING] Failed to load medicines.json: {e}. Using fallback list.")
+        return [
+            "paracetamol", "acetaminophen", "ibuprofen", "aspirin", "amoxicillin", 
+            "metformin", "atorvastatin", "amlodipine", "azithromycin", "ciprofloxacin"
+        ]
+
+COMMON_DRUGS = load_common_drugs()
 
 # Dosage units
 DOSAGE_UNITS = [

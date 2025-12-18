@@ -19,7 +19,6 @@ to explain prescriptions in local languages with voice support.
 - Audio explanation
 
 ## Tech Stack
-- Frontend: Next.js, Tailwind
 - Backend: FastAPI
 - OCR: Google Vision API
 - NLP: spaCy, RapidFuzz

@@ -38,29 +38,35 @@ class GeminiExtractor:
             You are an expert medical pharmacist assistant. Analyze this prescription image and extract the following information in strict JSON format.
             
             Focus ONLY on the Patient Name and the Medicines prescribed. 
-            IGNORE:
-            - Hospital details (headers, footers, logos)
-            - Doctor names/degrees
-            - Patient Address
-            - Vitals (Temperature, BP, Pulse, Weight, Height)
-            - Clinical Complaints (C/o, Symptoms like 'Fever', 'Body pains')
             
-            Return ONLY the JSON object, no markdown formatting or other text.
+            Instructions:
+            1. **Medicines**: Extract the exact brand name or generic name of the drug.
+               - Look for drug names like 'Paracetamol', 'Augmentin', 'Dolo', 'Pan 40', etc.
+               - Ignore isolated numbers or small random text.
+               - Infer valid dosages (e.g., '500mg', '10ml') and frequencies (e.g., 'BD', 'QD', '1-0-1').
+            2. **Patient Name**: Look for "Name:", "Pt Name:", or a name at the top of the prescription.
+            
+            IGNORE:
+            - Hospital details, doctor degrees, phone numbers, addresses.
+            - Patient vitals (BP, Weight, etc.).
+            - Diagnosis or symptoms.
+            
+            Return ONLY the JSON object, no markdown formatting.
             
             Structure:
             {
-                "patient_name": "Name found",
+                "patient_name": "Name found or null",
                 "drug_candidates": [
                     {
-                        "drug": "Name of drug",
-                        "category": "Therapeutic category (e.g., Antibiotic, Painkiller, Supplement)",
-                        "description": "A short, simple layman-friendly explanation of what the drug treats (1-2 sentences).",
+                        "drug": "Exact Name of drug",
+                        "category": "Therapeutic category (e.g., Antibiotic, Painkiller)",
+                        "description": "Short explanation of use (1 sentence).",
                         "score": 100,
-                        "dosages": ["Tablet", "10ml", etc],
-                        "frequencies": ["once daily", "2x daily", etc]
+                        "dosages": ["500mg", "Tablet", etc],
+                        "frequencies": ["once daily", "1-0-1", etc]
                     }
                 ],
-                "raw_ocr_text": "Generate a clean summary list of ONLY the Patient Name and Medicines found. Do NOT include vitals, address, or symptoms here."
+                "raw_ocr_text": "Summary of extracted medicines."
             }
             
             If a field is not found, return null or empty list.

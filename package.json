@@ -1,0 +1,13 @@
+{
+    "name": "meditranslate-root",
+    "version": "1.0.0",
+    "scripts": {
+        "build": "cd frontend && npm install && npm run build"
+    },
+    "dependencies": {
+        "next": "16.0.10"
+    },
+    "engines": {
+        "node": ">=18"
+    }
+}

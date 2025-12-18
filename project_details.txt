@@ -1,0 +1,32 @@
+PROJECT: MediTranslate – Vernacular Healthcare Companion
+
+================================================================================
+ABOUT
+================================================================================
+MediTranslate is an AI-powered healthcare companion designed to bridge the communication gap between doctors and patients. It serves as an intelligent translator that takes complex medical prescriptions (often handwritten) and converts them into simple, easy-to-understand instructions in the patient's own regional language.
+
+================================================================================
+WHY WE USE THIS PROJECT
+================================================================================
+1.  **Language Barriers**: Medical prescriptions are typically written in English using medical jargon. Many patients, especially in diverse linguistic regions, struggle to understand them.
+2.  **Medication Safety**: Misunderstanding instructions (e.g., taking a pill "twice daily" vs "two at once") can lead to serious health risks. MediTranslate ensures clarity.
+3.  **Digital Record**: It helps users digitize and understand their physical prescriptions.
+4.  **Accessibility**: By offering audio explanations, it supports users who may have difficulty reading.
+
+================================================================================
+KEY FEATURES
+================================================================================
+1.  **Hybrid OCR Technology**:
+    -   Uses advanced Optical Character Recognition (Tesseract + Google Gemini AI) to read even difficult-to-read handwritten prescriptions.
+
+2.  **Smart Entity Extraction**:
+    -   Automatically identifies and separates the Patient's Name, Medicines, Dosages, and Frequencies from other clutter on the page.
+
+3.  **Drug Education**:
+    -   Provides simple, layman-friendly descriptions of what each medicine is for (e.g., identifying "Amoxicillin" as an "Antibiotic for infections").
+
+4.  **Vernacular Translation**:
+    -   Translates instructions into local languages (e.g., Hindi, Telugu, Tamil, etc.) so patients understand exactly how to take their medicine.
+
+5.  **Audio Guidance**:
+    -   Includes Text-to-Speech (TTS) capabilities to read the prescription instructions out loud to the user.

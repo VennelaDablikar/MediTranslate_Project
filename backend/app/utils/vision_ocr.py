@@ -60,7 +60,8 @@ except ImportError:
 try:
     import pytesseract
     PYTESSERACT_AVAILABLE = True
-except ImportError:
+except ImportError as e:
+    print(f"DEBUG: pytesseract import failed: {e}")
     PYTESSERACT_AVAILABLE = False
 
 
@@ -603,8 +604,9 @@ def process_prescription_image(image_bytes: bytes) -> Dict:
     preferred = os.getenv("PREFERRED_OCR", "").strip().lower()
 
     # Try engines in preferred order. Two common modes:
-    # - preferred == 'trocr' : TrOCR -> Google Vision -> OCR.space -> EasyOCR -> pytesseract
-    # - default (or 'google'): Google Vision -> TrOCR -> OCR.space -> EasyOCR -> pytesseract
+    # - preferred == 'trocr' : TrOCR -> Google Vision -> ...
+    # - preferred == 'pytesseract': pytesseract -> Google Vision -> ...
+    # - default (or 'google'): Google Vision -> ...
     trocr_error = None
     vision_error = None
     ocr_space_error = None
@@ -679,25 +681,24 @@ def process_prescription_image(image_bytes: bytes) -> Dict:
     # prefer trocr first if requested
     if preferred == 'trocr':
         raw_text, ocr_engine, e = try_tr0cr()
-        if raw_text is None:
-            raw_text, ocr_engine, e = try_vision()
-        if raw_text is None:
-            raw_text, ocr_engine, e = try_ocr_space()
-        if raw_text is None:
-            raw_text, ocr_engine, e = try_easyocr()
-        if raw_text is None:
-            raw_text, ocr_engine, e = try_pytesseract()
+        if raw_text is None: raw_text, ocr_engine, e = try_vision()
+        if raw_text is None: raw_text, ocr_engine, e = try_ocr_space()
+        if raw_text is None: raw_text, ocr_engine, e = try_easyocr()
+        if raw_text is None: raw_text, ocr_engine, e = try_pytesseract()
+    elif preferred == 'pytesseract':
+        print("[DEBUG] Preferred OCR: pytesseract")
+        raw_text, ocr_engine, e = try_pytesseract()
+        if raw_text is None: raw_text, ocr_engine, e = try_vision()
+        if raw_text is None: raw_text, ocr_engine, e = try_tr0cr()
+        if raw_text is None: raw_text, ocr_engine, e = try_ocr_space()
+        if raw_text is None: raw_text, ocr_engine, e = try_easyocr()
     else:
         # default: try google first
         raw_text, ocr_engine, doc = try_vision()
-        if raw_text is None:
-            raw_text, ocr_engine, e = try_tr0cr()
-        if raw_text is None:
-            raw_text, ocr_engine, e = try_ocr_space()
-        if raw_text is None:
-            raw_text, ocr_engine, e = try_easyocr()
-        if raw_text is None:
-            raw_text, ocr_engine, e = try_pytesseract()
+        if raw_text is None: raw_text, ocr_engine, e = try_tr0cr()
+        if raw_text is None: raw_text, ocr_engine, e = try_pytesseract()  # Try pytesseract earlier in fallback
+        if raw_text is None: raw_text, ocr_engine, e = try_ocr_space()
+        if raw_text is None: raw_text, ocr_engine, e = try_easyocr()
 
     # If still None, aggregate and raise
     if not raw_text:

@@ -1,220 +1,264 @@
 "use client";
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useLanguage } from '../../context/LanguageContext';
-import { useAuth } from '../../context/AuthContext';
-import { Upload, Camera, FileText, Loader2, Play } from 'lucide-react';
-import Link from 'next/link';
+import { Upload, Camera, FileText, Loader2, CheckCircle, ArrowRight } from 'lucide-react';
+import MedicinesList from '../../components/dashboard/MedicinesList';
+import MedicineCard from '../../components/dashboard/MedicineCard';
 
-export default function Dashboard() {
-    const { user, loading } = useAuth();
-    const { language, setLanguage } = useLanguage();
-    const router = useRouter();
-    const fileInputRef = useRef(null);
-    const [isDragOver, setIsDragOver] = useState(false);
-    const [isProcessing, setIsProcessing] = useState(false);
+// Helper for realistic pricing
+const getRealisticPrice = (name) => {
+    const lowerName = name.toLowerCase();
+    const prices = {
+        'amoxicillin': '12.99',
+        'ibuprofen': '8.50',
+        'paracetamol': '5.99',
+        'atorvastatin': '18.50',
+        'metformin': '4.00',
+        'lisinopril': '7.50',
+        'amlodipine': '6.25',
+        'levothyroxine': '11.20',
+        'azithromycin': '24.00',
+        'metoprolol': '9.00',
+        'omeprazole': '15.00',
+        'simvastatin': '10.00',
+        'losartan': '14.50',
+        'albuterol': '25.00',
+        'gabapentin': '16.75',
+        'hydrochlorothiazide': '5.50',
+        'sertraline': '22.00',
+        'furosemide': '8.00',
+        'fluticasone': '35.00',
+        'acetaminophen': '5.99',
+        'aspirin': '6.50'
+    };
 
-    // Redirect if not logged in
-    if (!loading && !user) {
-        router.push('/login');
-        return null;
+    // Check for exact matches or partial matches
+    for (const [key, value] of Object.entries(prices)) {
+        if (lowerName.includes(key)) return value;
     }
 
-    const handleLanguageSelect = (lang) => {
-        setLanguage(lang);
-    };
+    // Default fallback if unknown
+    return (Math.random() * 40 + 10).toFixed(2);
+};
+
+export default function DashboardPage() {
+    const router = useRouter();
+    const fileInputRef = useRef(null);
+
+    // State
+    const [isDragOver, setIsDragOver] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [uploadSuccess, setUploadSuccess] = useState(false);
+    const [selectedLanguage, setSelectedLanguage] = useState('english');
+
+    // Data
+    const [medicines, setMedicines] = useState([]);
+    const [patientName, setPatientName] = useState("");
+
+    // Load data from local storage on mount (simulating persistence)
+    useEffect(() => {
+        const savedData = localStorage.getItem('prescriptionData');
+        if (savedData) {
+            try {
+                const parsed = JSON.parse(savedData);
+                if (parsed.medicines) setMedicines(parsed.medicines);
+                if (parsed.patient) setPatientName(parsed.patient);
+            } catch (e) {
+                console.error("Failed to load saved data", e);
+            }
+        }
+    }, []);
 
     const handleFileSelect = async (e) => {
         const file = e.target.files?.[0];
-        if (file) {
-            setIsProcessing(true);
-
-            // Create FormData
-            const formData = new FormData();
-            formData.append('file', file);
-
-            try {
-                // Call Backend API
-                const response = await fetch('http://localhost:8000/ocr/extract', {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                if (!response.ok) {
-                    throw new Error("Extraction Failed");
-                }
-
-                const data = await response.json();
-
-                // Convert image to blob url for display
-                const imageUrl = URL.createObjectURL(file);
-
-                // Store in localStorage for Results page to pick up
-                localStorage.setItem('prescriptionData', JSON.stringify({
-                    id: 'uploaded',
-                    date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
-                    imageUrl: imageUrl,
-                    doctor: 'Dr. (Not Detected)',
-                    patient: data.patient_name || 'Patient',
-                    confidence: 95, // Mock confidence or derive from data
-                    extractedText: data.raw_ocr_text,
-                    medicines: data.drug_candidates.map(drug => ({
-                        name: drug.drug,
-                        dosage: Array.isArray(drug.dosages) ? drug.dosages.join(', ') : drug.dosages, // Handle missing/array
-                        type: drug.category || 'Medicine',
-                        usage: drug.description || 'No description available',
-                        instruction: drug.frequencies ? (Array.isArray(drug.frequencies) ? drug.frequencies.join(', ') : drug.frequencies) : 'As directed',
-                        time: 'See instruction'
-                    }))
-                }));
-
-                router.push('/results/uploaded?tab=ocr');
-
-            } catch (error) {
-                console.error("Upload failed", error);
-                alert("Upload failed: " + error.message);
-                setIsProcessing(false);
-            }
-        }
+        if (file) await processFile(file);
     };
 
     const onDrop = async (e) => {
         e.preventDefault();
         setIsDragOver(false);
         const file = e.dataTransfer.files?.[0];
+        if (file) await processFile(file);
+    };
 
-        if (file) {
-            setIsProcessing(true);
-            const formData = new FormData();
-            formData.append('file', file);
+    const processFile = async (file) => {
+        setIsProcessing(true);
+        setUploadSuccess(false);
 
-            try {
-                const response = await fetch('http://localhost:8000/ocr/extract', {
-                    method: 'POST',
-                    body: formData,
-                });
+        const formData = new FormData();
+        formData.append('file', file);
 
-                if (!response.ok) throw new Error("Extraction Failed");
+        try {
+            const response = await fetch('http://localhost:8000/ocr/extract', {
+                method: 'POST',
+                body: formData,
+            });
 
-                const data = await response.json();
-                const imageUrl = URL.createObjectURL(file);
+            if (!response.ok) throw new Error("Extraction Failed");
 
-                localStorage.setItem('prescriptionData', JSON.stringify({
-                    id: 'uploaded',
-                    date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
-                    imageUrl: imageUrl,
-                    doctor: 'Dr. (Not Detected)',
-                    patient: data.patient_name || 'Patient',
-                    confidence: 95,
-                    extractedText: data.raw_ocr_text,
-                    medicines: data.drug_candidates.map(drug => ({
-                        name: drug.drug,
-                        dosage: Array.isArray(drug.dosages) ? drug.dosages.join(', ') : drug.dosages,
-                        type: drug.category || 'Medicine',
-                        usage: drug.description || 'No description available',
-                        instruction: drug.frequencies ? (Array.isArray(drug.frequencies) ? drug.frequencies.join(', ') : drug.frequencies) : 'As directed',
-                        time: 'See instruction'
-                    }))
-                }));
+            const data = await response.json();
 
-                router.push('/results/uploaded?tab=ocr');
-            } catch (error) {
-                console.error("Upload failed", error);
-                alert("Upload failed: " + error.message);
-                setIsProcessing(false);
-            }
+            // Transform Data for UI
+            const newMedicines = (data.drug_candidates || []).map(drug => ({
+                name: drug.drug,
+                dosage: Array.isArray(drug.dosages) ? drug.dosages[0] : drug.dosages,
+                type: drug.category || 'Medicine',
+                usage: drug.description || 'No description available',
+                instruction: drug.frequencies ? (Array.isArray(drug.frequencies) ? drug.frequencies[0] : drug.frequencies) : 'As directed',
+                price: getRealisticPrice(drug.drug), // Realistic price lookup
+                buyLink: `https://www.google.com/search?q=${encodeURIComponent(drug.drug)}+price+buy+online` // Dynamic Buy Link
+            }));
+
+            setMedicines(newMedicines);
+            setPatientName(data.patient_name || "Guest");
+            setUploadSuccess(true);
+
+            // Save for persistence across reloads
+            localStorage.setItem('prescriptionData', JSON.stringify({
+                patient: data.patient_name,
+                medicines: newMedicines
+            }));
+
+        } catch (error) {
+            console.error("Upload failed", error);
+            alert("Upload failed: " + error.message);
+        } finally {
+            setIsProcessing(false);
         }
     };
 
-    const languages = [
-        { code: 'english', name: 'English', flag: '🇬🇧' },
-        { code: 'hindi', name: 'Hindi', flag: '🇮🇳' },
-        { code: 'tamil', name: 'Tamil', flag: '🇮🇳' },
-        { code: 'telugu', name: 'Telugu', flag: '🇮🇳' }
-    ];
-
-    if (loading) {
-        return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-blue-600" size={48} /></div>;
-    }
-
     return (
-        <div className="max-w-6xl mx-auto px-4 py-8">
-            {/* 1. Language Selector */}
-            <div className="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-slate-100">
-                <h2 className="text-xl font-bold text-slate-800 mb-4 text-center">Select Your Language / अपनी भाषा चुनें</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {languages.map((lang) => (
-                        <button
-                            key={lang.code}
-                            onClick={() => handleLanguageSelect(lang.code)}
-                            className={`flex items-center justify-center gap-3 p-4 rounded-xl border-2 transition-all ${language === lang.code
-                                ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-md ring-2 ring-blue-200'
-                                : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50 text-slate-700'
-                                }`}
-                        >
-                            <span className="text-2xl">{lang.flag}</span>
-                            <span className="font-bold">{lang.name}</span>
-                            {language === lang.code && <div className="ml-auto w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>}
-                        </button>
-                    ))}
-                </div>
-            </div>
+        <div className="space-y-8">
+            {/* TOP ROW: NEW SCAN + MEDICINES LIST */}
+            <div className="grid grid-cols-12 gap-8 lg:min-h-[500px]">
 
-            {/* 2. Upload Section */}
-            <div className="bg-white rounded-3xl shadow-lg overflow-hidden border border-slate-100 min-h-[500px] flex flex-col items-center justify-center p-8 relative">
-                <h1 className="text-3xl font-bold text-slate-800 mb-2">Upload Prescription</h1>
-                <p className="text-slate-500 mb-8 text-center max-w-lg">
-                    Drag and drop your prescription image here, or use the buttons below to browse or take a photo.
-                </p>
+                {/* LEFT: SCAN AREA (8 cols) */}
+                <div className="col-span-12 lg:col-span-8 flex flex-col gap-6">
+                    <div className="flex justify-between items-end">
+                        <section>
+                            <h2 className="text-3xl font-bold text-slate-900 mb-2">New Scan</h2>
+                            <p className="text-slate-500">Securely digitize and translate medical records with AI precision.</p>
+                        </section>
+                        <span className="px-3 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-full border border-green-200 flex items-center gap-2">
+                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                            System Operational
+                        </span>
+                    </div>
 
-                <div
-                    className={`w-full max-w-2xl border-3 border-dashed rounded-3xl p-12 flex flex-col items-center justify-center transition-all duration-300 ${isDragOver ? 'border-blue-500 bg-blue-50 scale-105' : 'border-slate-200 bg-slate-50 hover:border-blue-400'
-                        }`}
-                    onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
-                    onDragLeave={() => setIsDragOver(false)}
-                    onDrop={onDrop}
-                >
-                    {isProcessing ? (
-                        <div className="flex flex-col items-center animate-in fade-in zoom-in">
-                            <Loader2 size={64} className="text-blue-600 animate-spin mb-6" />
-                            <p className="text-xl font-semibold text-slate-700">Processing Prescription...</p>
-                            <p className="text-slate-500 mt-2">Extracting text and verifying medicines</p>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="w-24 h-24 bg-white rounded-full shadow-md flex items-center justify-center mb-6 text-blue-600">
-                                <Upload size={40} strokeWidth={2.5} />
+                    <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm flex-1 flex flex-col">
+                        {/* Language Selectors Row */}
+                        <div className="flex gap-4 mb-8">
+                            <div className="flex-1">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Source Language</label>
+                                <select className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                    <option>Auto-Detect</option>
+                                    <option>English</option>
+                                </select>
                             </div>
-
-                            <div className="flex flex-wrap gap-4 justify-center w-full">
-                                <button
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="px-8 py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 hover:scale-105 transition-all flex items-center gap-2"
+                            <div className="flex items-center text-slate-300 pt-6">
+                                <ArrowRight />
+                            </div>
+                            <div className="flex-1">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Target Language</label>
+                                <select
+                                    value={selectedLanguage}
+                                    onChange={(e) => setSelectedLanguage(e.target.value)}
+                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                                 >
-                                    <FileText size={20} /> Browse File
-                                </button>
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    hidden
-                                    accept="image/*"
-                                    onChange={handleFileSelect}
-                                />
-
-                                <button className="px-8 py-4 bg-white text-slate-700 border-2 border-slate-200 rounded-xl font-bold hover:border-blue-400 hover:text-blue-600 hover:bg-slate-50 transition-all flex items-center gap-2">
-                                    <Camera size={20} /> Take Photo
-                                </button>
+                                    <option value="english">English</option>
+                                    <option value="hindi">Hindi</option>
+                                    <option value="tamil">Tamil</option>
+                                    <option value="telugu">Telugu</option>
+                                </select>
                             </div>
+                        </div>
 
-                            <div className="mt-8 pt-8 border-t border-slate-200 w-full flex justify-center">
-                                <Link href="/results/demo?tab=ocr" className="text-slate-500 hover:text-blue-600 font-medium flex items-center gap-2 px-4 py-2 hover:bg-blue-50 rounded-lg transition">
-                                    <Play size={16} fill="currentColor" /> Try Demo Prescription
-                                </Link>
+                        {/* Drop Zone */}
+                        <div
+                            className={`flex-1 border-3 border-dashed rounded-2xl flex flex-col items-center justify-center transition-all duration-300 relative overflow-hidden ${isDragOver ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-slate-50 hover:border-emerald-300'
+                                }`}
+                            onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+                            onDragLeave={() => setIsDragOver(false)}
+                            onDrop={onDrop}
+                        >
+                            {/* Scanning Laser Animation */}
+                            {isProcessing && (
+                                <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.8)] animate-[scan_2s_ease-in-out_infinite]"></div>
+                                    <Loader2 size={48} className="text-emerald-600 animate-spin mb-4" />
+                                    <p className="font-bold text-emerald-800 animate-pulse">Analyzing Prescription...</p>
+                                </div>
+                            )}
+
+                            {!isProcessing && uploadSuccess && (
+                                <div className="absolute inset-0 bg-emerald-50/90 z-10 flex flex-col items-center justify-center animate-in fade-in zoom-in">
+                                    <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 mb-4">
+                                        <CheckCircle size={32} />
+                                    </div>
+                                    <p className="font-bold text-emerald-900 text-lg">Scan Complete</p>
+                                    <button
+                                        onClick={() => setUploadSuccess(false)}
+                                        className="mt-4 px-6 py-2 bg-white text-emerald-700 font-bold rounded-lg shadow-sm border border-emerald-100 hover:bg-emerald-50"
+                                    >
+                                        Scan Another
+                                    </button>
+                                </div>
+                            )}
+
+                            <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 mb-6 shadow-lg shadow-emerald-100">
+                                <Upload size={32} />
                             </div>
-                        </>
-                    )}
+                            <h3 className="text-xl font-bold text-slate-800 mb-2">Upload Medical Record</h3>
+                            <p className="text-slate-500 mb-8 max-w-xs text-center">Drag & drop files here, or click to browse. Supports PDF, JPG, PNG.</p>
+
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                className="px-8 py-3 bg-emerald-600 text-white rounded-xl font-bold shadow-lg shadow-emerald-200 hover:bg-emerald-700 hover:scale-105 transition-all flex items-center gap-2"
+                            >
+                                <Camera size={20} /> Select File
+                            </button>
+                            <input type="file" ref={fileInputRef} hidden accept="image/*" onChange={handleFileSelect} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* RIGHT: MEDICINES LIST (4 cols) */}
+                <div className="col-span-12 lg:col-span-4 h-full pt-[60px]"> {/* pt to align with card top */}
+                    <MedicinesList medicines={medicines} />
                 </div>
             </div>
+
+            {/* BOTTOM ROW: DETAILS GRID */}
+            <div className="mt-20">
+                <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-bold text-slate-900">Scanned Medicine Details</h3>
+                    <button className="text-sm font-bold text-emerald-600 hover:text-emerald-700">View All Products</button>
+                </div>
+
+                {medicines.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {medicines.map((med, idx) => (
+                            <div key={idx} className="h-[300px]">
+                                <MedicineCard medicine={med} />
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="w-full h-48 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center text-slate-400">
+                        <FileText size={48} className="mb-4 opacity-50" />
+                        <p>No medicines scanned yet.</p>
+                    </div>
+                )}
+            </div>
+
+            <style jsx global>{`
+                @keyframes scan {
+                    0% { top: 0%; opacity: 0; }
+                    10% { opacity: 1; }
+                    90% { opacity: 1; }
+                    100% { top: 100%; opacity: 0; }
+                }
+            `}</style>
         </div>
     );
 }

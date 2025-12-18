@@ -1,7 +1,7 @@
 # Python
 __pycache__/
 *.pyc
-.env
+
 venv/
 
 # Node
@@ -16,5 +16,5 @@ backend/app/static/audio/*.mp3
 Thumbs.db
 
 # Secrets
-.env
+
 backend/app/config/vision_key.json

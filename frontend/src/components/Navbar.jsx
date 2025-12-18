@@ -12,6 +12,11 @@ function NavbarContent() {
   const { user, signOut } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Hide Navbar on Dashboard pages as they have their own Sidebar/TopBar
+  if (pathname.startsWith('/dashboard')) {
+    return null;
+  }
+
   const isActive = (path, tab) => {
     if (tab) {
       return pathname === path && activeTab === tab

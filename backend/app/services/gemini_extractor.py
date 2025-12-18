@@ -109,3 +109,86 @@ class GeminiExtractor:
         except Exception as e:
             logger.error(f"Gemini extraction failed: {e}")
             raise Exception(f"Gemini extraction failed: {str(e)}")
+
+    async def extract_from_text(self, text: str) -> Dict:
+        """
+        Extracts structured data from raw text using Gemini.
+        """
+        if not self.api_key:
+            raise ValueError("GOOGLE_API_KEY is missing. Please set it in your .env file.")
+
+        try:
+            prompt = f"""
+            You are an expert medical pharmacist assistant. Analyze the following OCR text from a prescription and extract the information in strict JSON format.
+            
+            OCR TEXT:
+            \"\"\"
+            {text}
+            \"\"\"
+            
+            Focus ONLY on the Patient Name and the Medicines prescribed.
+            IGNORE:
+            - Hospital details (headers, footers, logos)
+            - Doctor names/degrees
+            - Patient Address
+            - Vitals (Temperature, BP, Pulse, Weight, Height)
+            - Clinical Complaints (C/o, Symptoms like 'Fever', 'Body pains')
+            
+            Return ONLY the JSON object, no markdown formatting or other text.
+            
+            Structure:
+            {{
+                "patient_name": "Name found",
+                "drug_candidates": [
+                    {{
+                        "drug": "Name of drug",
+                        "category": "Therapeutic category (e.g., Antibiotic, Painkiller, Supplement)",
+                        "description": "A short, simple layman-friendly explanation of what the drug treats (1-2 sentences).",
+                        "score": 100,
+                        "dosages": ["Tablet", "10ml", etc],
+                        "frequencies": ["once daily", "2x daily", etc]
+                    }}
+                ],
+                "raw_ocr_text": "Generate a clean summary list of ONLY the Patient Name and Medicines found. Do NOT include vitals, address, or symptoms here."
+            }}
+            
+            If a field is not found, return null or empty list.
+            """
+
+            response = self.model.generate_content(prompt)
+            
+            text_response = response.text.strip()
+            if text_response.startswith("```json"):
+                text_response = text_response[7:]
+            if text_response.endswith("```"):
+                text_response = text_response[:-3]
+            
+            data = json.loads(text_response.strip())
+            
+            # Metadata
+            data["ocr_engine"] = "tesseract+gemini"
+            data["tokens"] = [] 
+            data["confidence_metrics"] = {
+                "avg_token_confidence": 1.0, 
+                "note": "Hybrid extraction"
+            }
+            
+            # Post-process dosages/frequencies like in image method
+            all_dosages = []
+            all_frequencies = {}
+            for drug in data.get("drug_candidates", []):
+                if "dosages" in drug:
+                    all_dosages.extend(drug["dosages"])
+                if "frequencies" in drug:
+                    for freq in drug["frequencies"]:
+                        all_frequencies[freq] = [freq]
+
+            data["dosages"] = list(set(all_dosages))
+            data["frequencies"] = all_frequencies
+            data["dosage_forms"] = []
+            
+            return data
+
+        except Exception as e:
+            logger.error(f"Gemini text processing failed: {e}")
+            raise Exception(f"Gemini text processing failed: {str(e)}")

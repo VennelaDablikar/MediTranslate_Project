@@ -53,13 +53,45 @@ async def extract_text(file: UploadFile = File(...)) -> Dict:
                 logger.error(f"Gemini extraction failed: {e}")
                 # Raise the actual Gemini error so the user knows why it failed
                 raise HTTPException(status_code=500, detail=f"Gemini Extraction Failed: {str(e)}")
+
+        elif ocr_engine in ["tesseract", "hybrid", "pytesseract"]:
+             try:
+                # 1. Extract raw text using Tesseract
+                logger.info("Using Hybrid Pipeline: Tesseract OCR -> Gemini NLP")
+                # process_prescription_image handles the OCR preference
+                # We need to temporarily set env var or modify call if we want to force it, 
+                # but we modified vision_ocr.py to respect "PREFERRED_OCR" env var if passed? 
+                # Actually, process_prescription_image reads os.getenv("PREFERRED_OCR").
+                # Let's set it here for this request context if possible, or assume user set it globally.
+                # BETTER: We can just manually call the underlying functions or trust the environment.
+                # BUT, since we are in code, let's just use os.environ context for safety or update process_prescription_image to accept an arg.
+                # Updating process_prescription_image signature is riskier. Let's set env var temporarily.
+                os.environ["PREFERRED_OCR"] = "pytesseract"
+                
+                ocr_result = process_prescription_image(image_bytes)
+                raw_text = ocr_result.get("raw_ocr_text", "")
+                
+                if not raw_text:
+                     raise ValueError("Tesseract failed to extract any text.")
+
+                # 2. Pass text to Gemini for structured extraction
+                from ..services.gemini_extractor import GeminiExtractor
+                extractor = GeminiExtractor()
+                if extractor.api_key:
+                     result = await extractor.extract_from_text(raw_text)
+                     return result
+                else:
+                     logger.warning("Gemini API key missing for hybrid mode. Returning raw Tesseract text only.")
+                     # Fallback: return raw OCR structure if Gemini is missing
+                     return ocr_result
+
+             except Exception as e:
+                logger.error(f"Hybrid extraction failed: {e}")
+                raise HTTPException(status_code=500, detail=f"Hybrid Extraction Failed: {str(e)}")
         
-                # Raise the actual Gemini error so the user knows why it failed
-                raise HTTPException(status_code=500, detail=f"Gemini Extraction Failed: {str(e)}")
-        
-        # If we reach here, it means OCR_ENGINE was not gemini, but we don't want Vision fallback.
-        # Since user explicitly requested NO Vision API, we raise an error if Gemini wasn't used.
-        raise HTTPException(status_code=400, detail="OCR_ENGINE must be set to 'gemini'. Google Vision is disabled.")
+        # If we reach here, it means OCR_ENGINE was not gemini or hybrid
+        # default fall through to legacy behavior or error
+        raise HTTPException(status_code=400, detail="OCR_ENGINE must be set to 'gemini' or 'tesseract'.")
         
     except Exception as e:
         logger.error(f"OCR extraction failed: {e}")

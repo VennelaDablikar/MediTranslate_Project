@@ -1,8 +1,8 @@
 # Python
 __pycache__/
 *.pyc
-# .env
-# .env.local
+.env
+.env.local
 venv/
 
 # Audio files
@@ -15,5 +15,5 @@ Thumbs.db
 # Secrets
 
 backend/app/config/vision_key.json
-# backend/app/config/.env
-# .env.local
+backend/app/config/.env
+.env.local

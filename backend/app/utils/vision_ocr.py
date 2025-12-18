@@ -386,7 +386,7 @@ def match_drug_candidates(
     token_texts = [t['text'] for t in tokens]
     for t in token_texts:
         cleaned = clean_text(t)
-        if not cleaned:
+        if not cleaned.strip():
             continue
         best = process.extractOne(cleaned, COMMON_DRUGS, scorer=fuzz.token_sort_ratio)
         if best and best[1] >= min_score:

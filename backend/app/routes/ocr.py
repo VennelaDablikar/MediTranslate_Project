@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from typing import Dict, List
 import logging
 import os
@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("/extract")
-async def extract_text(file: UploadFile = File(...)) -> Dict:
+async def extract_text(file: UploadFile = File(...), language: str = Form("English")) -> Dict:
     """
     Extract text and entities from prescription image using Google Vision API.
     
@@ -42,8 +42,8 @@ async def extract_text(file: UploadFile = File(...)) -> Dict:
                 extractor = GeminiExtractor()
                 # Check if API key is present before attempting
                 if extractor.api_key:
-                    logger.info(f"Using Gemini Flash Latest for extraction (Mime: {file.content_type})")
-                    result = await extractor.extract_prescription_data(image_bytes, mime_type=file.content_type)
+                    logger.info(f"Using Gemini Flash Latest for extraction (Mime: {file.content_type}, Language: {language})")
+                    result = await extractor.extract_prescription_data(image_bytes, mime_type=file.content_type, language=language)
                     return result
                 else:
                     # Explicitly warn if API key is missing when Gemini is expected
@@ -78,7 +78,7 @@ async def extract_text(file: UploadFile = File(...)) -> Dict:
                 from ..services.gemini_extractor import GeminiExtractor
                 extractor = GeminiExtractor()
                 if extractor.api_key:
-                     result = await extractor.extract_from_text(raw_text)
+                     result = await extractor.extract_from_text(raw_text, language=language)
                      return result
                 else:
                      logger.warning("Gemini API key missing for hybrid mode. Returning raw Tesseract text only.")

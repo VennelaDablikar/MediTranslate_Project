@@ -1,10 +1,76 @@
 "use client";
 
+
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Lock, Check, Stethoscope, ChevronDown } from "lucide-react";
-import React from "react";
+import { ArrowLeft, ArrowRight, Lock, Check, ChevronDown, Smartphone, Calendar, User, Eye, EyeOff } from "lucide-react";
+import React, { useState } from "react";
+import { supabase } from "../services/supabase";
 
 export default function SignUpPage() {
+    const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [fullName, setFullName] = useState("");
+    const [email, setEmail] = useState("");
+    const [mobile, setMobile] = useState("");
+    const [gender, setGender] = useState("");
+    const [dob, setDob] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState(false);
+
+    const handleSignup = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+        setSuccess(false);
+
+        try {
+            const { error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        full_name: fullName,
+                        mobile,
+                        gender,
+                        dob,
+                    },
+                },
+            });
+            if (error) throw error;
+            setSuccess(true);
+            setFullName("");
+            setEmail("");
+            setMobile("");
+            setGender("");
+            setDob("");
+            setPassword("");
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getStrength = (pass: string) => {
+        let score = 0;
+        if (!pass) return 0;
+        if (pass.length >= 8) score += 1;
+        if (/[A-Z]/.test(pass)) score += 1;
+        if (/[0-9]/.test(pass)) score += 1;
+        if (/[^A-Za-z0-9]/.test(pass)) score += 1;
+        return score;
+    };
+
+    const strength = getStrength(password);
+
+    const getStrengthColor = (s: number) => {
+        if (s === 0) return "bg-slate-200";
+        if (s <= 2) return "bg-red-400";
+        if (s === 3) return "bg-yellow-400";
+        return "bg-teal-500";
+    };
+
     return (
         <main className="min-h-screen bg-white flex">
 
@@ -67,67 +133,146 @@ export default function SignUpPage() {
 
                     <div className="mb-10">
                         <h2 className="text-3xl font-extrabold text-slate-900 mb-2">Create Account</h2>
-                        <p className="text-slate-500">Enter your professional details to get started.</p>
+                        <p className="text-slate-500">Enter your details to get started.</p>
                     </div>
 
-                    <form className="space-y-6">
+                    <form className="space-y-6" onSubmit={handleSignup}>
+                        {error && (
+                            <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm font-medium border border-red-100 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-600"></span>
+                                {error}
+                            </div>
+                        )}
+                        {success && (
+                            <div className="bg-teal-50 text-teal-700 p-4 rounded-xl text-sm font-medium border border-teal-100 flex items-start gap-2">
+                                <Check size={16} className="mt-0.5 shrink-0" />
+                                <div>
+                                    <p className="font-bold">Account created successfully!</p>
+                                    <p>Please check your email to verify your account before logging in.</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Full Name */}
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Full Name</label>
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Full Name <span className="text-red-500">*</span></label>
                             <input
+                                required
+                                value={fullName}
+                                onChange={(e) => setFullName(e.target.value)}
                                 type="text"
-                                placeholder="e.g. Dr. Sarah Johnson"
+                                placeholder="e.g. vennela dablikar"
                                 className="w-full bg-transparent border border-slate-300 rounded-xl px-4 py-3 text-slate-700 font-medium focus:border-teal-600 focus:ring-1 focus:ring-teal-600 outline-none transition-all placeholder:text-slate-300"
                             />
                         </div>
 
+                        {/* Email */}
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Email Address</label>
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Email Address <span className="text-red-500">*</span></label>
                             <input
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 type="email"
-                                placeholder="name@hospital.com"
+                                placeholder="vennela.dablikar@gmail.com"
                                 className="w-full bg-transparent border border-slate-300 rounded-xl px-4 py-3 text-slate-700 font-medium focus:border-teal-600 focus:ring-1 focus:ring-teal-600 outline-none transition-all placeholder:text-slate-300"
                             />
                         </div>
 
+                        {/* Mobile & Gender Row */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                                    Medical ID <span className="w-4 h-4 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-[9px] font-bold cursor-help" title="Your professional license number">?</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="ID-XXXX"
-                                    className="w-full bg-transparent border border-slate-300 rounded-xl px-4 py-3 text-slate-700 font-medium focus:border-teal-600 focus:ring-1 focus:ring-teal-600 outline-none transition-all placeholder:text-slate-300 uppercase"
-                                />
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Mobile Number <span className="text-red-500">*</span></label>
+                                <div className="relative">
+                                    <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                                    <input
+                                        required
+                                        value={mobile}
+                                        onChange={(e) => setMobile(e.target.value)}
+                                        type="tel"
+                                        placeholder="+91 1234567890"
+                                        className="w-full bg-transparent border border-slate-300 rounded-xl pl-12 pr-4 py-3 text-slate-700 font-medium focus:border-teal-600 focus:ring-1 focus:ring-teal-600 outline-none transition-all placeholder:text-slate-300"
+                                    />
+                                </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Specialty</label>
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Gender <span className="text-red-500">*</span></label>
                                 <div className="relative">
-                                    <Stethoscope className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                                    <select className="w-full bg-transparent border border-slate-300 rounded-xl pl-12 pr-10 py-3 text-slate-700 font-medium focus:border-teal-600 focus:ring-1 focus:ring-teal-600 outline-none appearance-none cursor-pointer bg-white">
-                                        <option>Select...</option>
-                                        <option>General Practitioner</option>
-                                        <option>Cardiologist</option>
-                                        <option>Pediatrician</option>
-                                        <option>Oncologist</option>
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                                    <select
+                                        required
+                                        value={gender}
+                                        onChange={(e) => setGender(e.target.value)}
+                                        className="w-full bg-transparent border border-slate-300 rounded-xl pl-12 pr-10 py-3 text-slate-700 font-medium focus:border-teal-600 focus:ring-1 focus:ring-teal-600 outline-none appearance-none cursor-pointer bg-white"
+                                    >
+                                        <option value="">Select...</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
                                     </select>
                                     <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                                 </div>
                             </div>
                         </div>
 
+                        {/* DOB */}
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Password</label>
-                            <input
-                                type="password"
-                                placeholder="Create a secure password"
-                                className="w-full bg-transparent border border-slate-300 rounded-xl px-4 py-3 text-slate-700 font-medium focus:border-teal-600 focus:ring-1 focus:ring-teal-600 outline-none transition-all placeholder:text-slate-300"
-                            />
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Date of Birth <span className="text-red-500">*</span></label>
+                            <div className="relative">
+                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                                <input
+                                    required
+                                    value={dob}
+                                    onChange={(e) => setDob(e.target.value)}
+                                    type="date"
+                                    className="w-full bg-transparent border border-slate-300 rounded-xl pl-12 pr-4 py-3 text-slate-700 font-medium focus:border-teal-600 focus:ring-1 focus:ring-teal-600 outline-none transition-all placeholder:text-slate-300"
+                                />
+                            </div>
                         </div>
 
+                        {/* Password with Strength */}
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Password <span className="text-red-500">*</span></label>
+                            <div className="relative">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                                <input
+                                    required
+                                    type={showPassword ? "text" : "password"}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="Create a secure password"
+                                    className="w-full bg-transparent border border-slate-300 rounded-xl pl-12 pr-12 py-3 text-slate-700 font-medium focus:border-teal-600 focus:ring-1 focus:ring-teal-600 outline-none transition-all placeholder:text-slate-300"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                >
+                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
+
+                            {/* Strength Indicator */}
+                            <div className="flex gap-1 h-1 mt-2">
+                                <div className={`flex-1 rounded-full ${strength >= 1 ? getStrengthColor(strength) : "bg-slate-100"} transition-all duration-300`}></div>
+                                <div className={`flex-1 rounded-full ${strength >= 2 ? getStrengthColor(strength) : "bg-slate-100"} transition-all duration-300`}></div>
+                                <div className={`flex-1 rounded-full ${strength >= 3 ? getStrengthColor(strength) : "bg-slate-100"} transition-all duration-300`}></div>
+                                <div className={`flex-1 rounded-full ${strength >= 4 ? getStrengthColor(strength) : "bg-slate-100"} transition-all duration-300`}></div>
+                            </div>
+                            <p className="text-[10px] text-slate-400 text-right font-medium">
+                                {strength === 0 && "Start typing..."}
+                                {strength === 1 && "Weak"}
+                                {strength === 2 && "Fair"}
+                                {strength === 3 && "Good"}
+                                {strength === 4 && "Strong"}
+                            </p>
+                        </div>
+
+                        {/* Terms */}
                         <div className="flex items-start gap-3">
                             <div className="relative flex items-center">
                                 <input
+                                    required
                                     type="checkbox"
                                     id="terms"
                                     className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-slate-300 transition-all checked:bg-teal-600 checked:border-teal-600"
@@ -135,12 +280,12 @@ export default function SignUpPage() {
                                 <Check size={12} className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100" strokeWidth={4} />
                             </div>
                             <label htmlFor="terms" className="text-xs text-slate-500 leading-relaxed cursor-pointer select-none">
-                                I agree to the <a href="#" className="font-bold text-teal-700 hover:underline">Terms of Service</a> and <a href="#" className="font-bold text-teal-700 hover:underline">Privacy Policy</a>, and I confirm I am a licensed medical professional.
+                                I agree to the <a href="#" className="font-bold text-teal-700 hover:underline">Terms of Service</a> and <a href="#" className="font-bold text-teal-700 hover:underline">Privacy Policy</a>.
                             </label>
                         </div>
 
-                        <button type="button" className="w-full bg-teal-600 text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-teal-900/10 hover:bg-teal-700 transition-all flex items-center justify-center gap-2">
-                            Create Account <ArrowRight size={18} />
+                        <button disabled={loading} type="submit" className="w-full bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-teal-900/10 hover:bg-teal-700 transition-all flex items-center justify-center gap-2">
+                            {loading ? "Creating Account..." : "Create Account"} <ArrowRight size={18} />
                         </button>
 
                         <div className="text-center pt-4">

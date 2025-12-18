@@ -1,39 +1,46 @@
 # MediTranslate – Vernacular Healthcare Companion
 
-MediTranslate is an AI-powered web application designed to bridge the gap between complex medical prescriptions and patient understanding. It digitizes, translates, and explains medical prescriptions in simple regional languages, ensuring patients understand their medication regimen.
+**MediTranslate** is an AI-powered web application designed to bridge the gap between complex medical prescriptions and patient understanding. It digitizes, translates, and explains medical prescriptions in simple regional languages, ensuring patients understand their medication regimen clearly and accurately.
+
+![MediTranslate Landing Page](docs/images/landing_page.png)
 
 ---
 
-## 🚀 How It Works
+## 🚀 Key Features
 
-MediTranslate operates on a sophisticated pipeline that combines Computer Vision, Optical Character Recognition (OCR), and Large Language Models (LLMs).
-
-1.  **Upload & Preprocessing (Frontend/Backend)**
-    *   Users upload a prescription image via the Next.js frontend.
-    *   The image is sent to the FastAPI backend.
-    *   We use **OpenCV** to preprocess the image (denoising, contrast enhancement) to improve legibility.
-
-2.  **OCR & Text Extraction**
-    *   The system uses **Google Vision API** (or fallback engines like TrOCR/Tesseract) to extract raw text from the image.
-    *   **Gemini Flash AI** analyzes the raw text to intelligently identify:
-        *   **Patient Name**
-        *   **Medicines** (Brand/Generic names)
-        *   **Dosages** & **Frequencies**
-
-3.  **Medicine Identification & Search**
-    *   Extracted drug names are fuzzy-matched against a comprehensive internal database (`medicines.json`) containing thousands of common medicines.
-    *   This ensures accurate identification even if the OCR misses a character or two.
-
-4.  **Translation & Presentation**
-    *   The results are structured and sent back to the frontend.
-    *   Users can view the digital prescription, translate it into languages like Spanish, French, or Hindi, and even listen to audio explanations.
+*   **AI-Powered OCR**: Uses **Google Vision API** and **Gemini Flash** to intelligently extract text from handwritten and printed prescriptions.
+*   **Instant Translation**: Translates complex medical jargon into 40+ languages including Hindi, Telugu, Tamil, Spanish, and French.
+*   **Medicine Insights**: accurate identification of medicines with dosage, frequency, and usage instructions.
+*   **Audio Guide**: Text-to-Speech support to read out instructions for better accessibility.
+*   **History & Tracking**: Save your scans and revisit past prescriptions anytime.
+*   **Secure & Private**: Built with privacy-first architecture using Supabase RLS.
 
 ---
 
-## 🛠️ Project Structure
+## 📸 Screenshots
 
-*   **/frontend**: A modern **Next.js 14** application (React, TypeScript, Tailwind CSS) for the user interface.
-*   **/backend**: A high-performance **FastAPI** (Python 3.9+) server handling logic, OCR, and database interactions.
+### Public Landing Page
+The intuitive landing page allows users to quickly scan documents and understand the platform's value.
+![MediTranslate Landing Page](docs/images/landing_page.png)
+
+### User Dashboard
+A comprehensive dashboard for managing scan history, viewing detailed analysis, and tracking medication.
+![MediTranslate Dashboard](docs/images/dashboard_page.png)
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+*   **Framework**: [Next.js 14](https://nextjs.org/) (React, TypeScript)
+*   **Styling**: Tailwind CSS, Lucide Icons
+*   **Animations**: Custom CSS animations, Skeleton loaders
+*   **Auth**: Supabase Auth
+
+### Backend
+*   **Server**: [FastAPI](https://fastapi.tiangolo.com/) (Python 3.9+)
+*   **AI/OCR**: Google Gemini Flash 1.5, Google Vision API, OpenCV
+*   **Database**: Supabase (PostgreSQL)
 
 ---
 
@@ -46,7 +53,7 @@ Ensure you have the following installed:
 
 ---
 
-## 📦 Installation
+## 📦 Installation Guide
 
 ### 1. Clone the Repository
 ```bash
@@ -73,7 +80,7 @@ cd ../frontend
 npm install
 ```
 
-### 4. Application Keys (.env)
+### 4. Configuration (.env)
 Create a `.env` file in the **root** folder (`MediTranslate_Project/.env`) and add your API keys:
 ```ini
 # Google Cloud (Required for best OCR results & Gemini)
@@ -106,6 +113,7 @@ This will start:
 **Terminal 1 (Backend):**
 ```bash
 cd backend
+source venv/bin/activate
 uvicorn app.main:app --reload --port 8000
 ```
 

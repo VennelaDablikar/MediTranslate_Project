@@ -9,9 +9,17 @@ interface HeroSectionProps {
     onAnalysisStart: () => void;
     onAnalysisComplete: (data: PrescriptionResponse) => void;
     isAnalyzing: boolean;
+    targetLanguage: string;
+    setTargetLanguage: (lang: string) => void;
 }
 
-export default function HeroSection({ onAnalysisStart, onAnalysisComplete, isAnalyzing }: HeroSectionProps) {
+export default function HeroSection({
+    onAnalysisStart,
+    onAnalysisComplete,
+    isAnalyzing,
+    targetLanguage,
+    setTargetLanguage
+}: HeroSectionProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [dragActive, setDragActive] = useState(false);
 
@@ -67,35 +75,48 @@ export default function HeroSection({ onAnalysisStart, onAnalysisComplete, isAna
                     Medication
                 </h1>
 
-                <p className="text-lg text-gray-500 max-w-lg leading-relaxed">
+                <p className="text-lg text-muted-foreground max-w-lg leading-relaxed">
                     Instantly digitize and translate medical records with AI precision.
                     Upload your prescription or medication packaging to get detailed
                     insights, pricing, and purchase options.
                 </p>
 
-                <div className="bg-white p-2 rounded-2xl shadow-lg shadow-teal-900/5 max-w-xl transition-all hover:shadow-xl">
+                <div className="bg-card p-2 rounded-2xl shadow-lg shadow-teal-900/5 max-w-xl transition-all hover:shadow-xl border border-border">
                     <div className="flex items-center gap-4 p-2">
                         <div className="flex-1">
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1 ml-2">
+                            <label className="block text-xs font-bold text-muted-foreground uppercase mb-1 ml-2">
                                 Translate From
                             </label>
-                            <select className="w-full bg-slate-50 border-none rounded-lg p-3 text-sm font-semibold text-gray-700 focus:ring-2 focus:ring-primary/20 cursor-pointer hover:bg-slate-100 transition-colors">
+                            <select className="w-full bg-muted border-none rounded-lg p-3 text-sm font-semibold text-foreground focus:ring-2 focus:ring-primary/20 cursor-pointer hover:bg-muted/80 transition-colors">
                                 <option>Auto-Detect</option>
                                 <option>English</option>
                             </select>
                         </div>
 
-                        <ArrowRight className="text-gray-300" size={20} />
+                        <ArrowRight className="text-muted-foreground" size={20} />
 
                         <div className="flex-1">
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1 ml-2">
+                            <label className="block text-xs font-bold text-muted-foreground uppercase mb-1 ml-2">
                                 Translate To
                             </label>
-                            <select className="w-full bg-slate-50 border-none rounded-lg p-3 text-sm font-semibold text-gray-700 focus:ring-2 focus:ring-primary/20 cursor-pointer hover:bg-slate-100 transition-colors">
+                            <select
+                                value={targetLanguage}
+                                onChange={(e) => setTargetLanguage(e.target.value)}
+                                className="w-full bg-muted border-none rounded-lg p-3 text-sm font-semibold text-foreground focus:ring-2 focus:ring-primary/20 cursor-pointer hover:bg-muted/80 transition-colors"
+                            >
                                 <option>English</option>
+                                <option>Hindi</option>
+                                <option>Telugu</option>
+                                <option>Tamil</option>
+                                <option>Kannada</option>
+                                <option>Malayalam</option>
+                                <option>Marathi</option>
+                                <option>Gujarati</option>
+                                <option>Bengali</option>
+                                <option>Punjabi</option>
+                                <option>Urdu</option>
                                 <option>Spanish</option>
                                 <option>French</option>
-                                <option>Hindi</option>
                             </select>
                         </div>
                     </div>
@@ -103,7 +124,7 @@ export default function HeroSection({ onAnalysisStart, onAnalysisComplete, isAna
                     <button
                         onClick={() => fileInputRef.current?.click()}
                         disabled={isAnalyzing}
-                        className="w-full mt-2 bg-primary text-white p-4 rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-teal-900 transition-colors group disabled:opacity-70 disabled:cursor-not-allowed"
+                        className="w-full mt-2 bg-primary text-primary-foreground p-4 rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-primary/90 transition-colors group disabled:opacity-70 disabled:cursor-not-allowed"
                     >
                         {isAnalyzing ? (
                             <Loader2 className="animate-spin" />
@@ -121,14 +142,22 @@ export default function HeroSection({ onAnalysisStart, onAnalysisComplete, isAna
                 <div className="absolute inset-0 bg-primary/5 rounded-full blur-3xl transform -translate-y-4"></div>
 
                 <div
-                    className={`relative bg-white rounded-[2.5rem] p-8 shadow-2xl shadow-teal-900/10 border-4 backdrop-blur-sm transition-all ${dragActive ? 'border-primary bg-teal-50' : 'border-white/50'}`}
+                    className={`relative bg-card rounded-[2.5rem] p-8 shadow-2xl shadow-teal-900/10 border-4 backdrop-blur-sm transition-all overflow-hidden ${dragActive ? 'border-primary bg-primary/5' : 'border-card dark:border-muted'}`}
                     onDragEnter={handleDrag}
                     onDragLeave={handleDrag}
                     onDragOver={handleDrag}
                     onDrop={handleDrop}
                 >
+                    {/* Scanning Animation Overlay */}
+                    {isAnalyzing && (
+                        <div className="absolute inset-0 z-20 pointer-events-none">
+                            <div className="absolute w-full h-1 bg-gradient-to-r from-transparent via-teal-500 to-transparent shadow-[0_0_20px_rgba(20,184,166,0.5)] animate-scan"></div>
+                            <div className="absolute inset-0 bg-teal-500/5"></div>
+                        </div>
+                    )}
+
                     <div
-                        className="border-2 border-dashed border-gray-200 rounded-[2rem] p-12 flex flex-col items-center justify-center text-center space-y-6 hover:border-primary/50 hover:bg-slate-50 transition-all cursor-pointer group h-80"
+                        className="border-2 border-dashed border-border rounded-[2rem] p-12 flex flex-col items-center justify-center text-center space-y-6 hover:border-primary/50 hover:bg-muted/50 transition-all cursor-pointer group h-80 relative z-10"
                         onClick={() => fileInputRef.current?.click()}
                     >
                         <input
@@ -139,7 +168,7 @@ export default function HeroSection({ onAnalysisStart, onAnalysisComplete, isAna
                             onChange={handleFileChange}
                         />
 
-                        <div className="w-20 h-20 bg-teal-50 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                             {isAnalyzing ? (
                                 <Loader2 className="text-primary w-10 h-10 animate-spin" />
                             ) : (
@@ -151,12 +180,12 @@ export default function HeroSection({ onAnalysisStart, onAnalysisComplete, isAna
                             <h3 className="text-xl font-bold text-foreground">
                                 {isAnalyzing ? "Analyzing Request..." : "Drop File Here"}
                             </h3>
-                            <p className="text-sm text-gray-400">
+                            <p className="text-sm text-muted-foreground">
                                 PDF, JPG, PNG, DICOM supported
                             </p>
                         </div>
 
-                        <button className="px-6 py-2 bg-slate-100 text-teal-900 font-semibold rounded-full text-sm hover:bg-teal-100 transition-colors">
+                        <button className="px-6 py-2 bg-muted text-foreground font-semibold rounded-full text-sm hover:bg-muted/80 transition-colors">
                             Browse Files
                         </button>
                     </div>

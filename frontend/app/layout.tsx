@@ -9,15 +9,32 @@ export const metadata: Metadata = {
   description: "Scan & Translate Medication",
 };
 
+import { AuthProvider } from "./context/AuthContext";
+import { AudioPlayerProvider } from "./context/AudioContext";
+import { ThemeProvider } from "./components/ThemeProvider";
+
+// ... existing code ...
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
-        {children}
+        <AuthProvider>
+          <AudioPlayerProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+            </ThemeProvider>
+          </AudioPlayerProvider>
+        </AuthProvider>
       </body>
     </html>
   );

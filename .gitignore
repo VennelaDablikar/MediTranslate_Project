@@ -19,5 +19,5 @@ Thumbs.db
 # Secrets
 
 backend/app/config/vision_key.json
-backend/app/config/.env 
+backend/app/config/.env
 .env.local

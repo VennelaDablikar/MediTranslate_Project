@@ -1,7 +1,8 @@
 # Python
 __pycache__/
 *.pyc
-
+.env
+.env.local
 venv/
 
 # Node
@@ -18,3 +19,5 @@ Thumbs.db
 # Secrets
 
 backend/app/config/vision_key.json
+backend/app/config/.env 
+.env.local

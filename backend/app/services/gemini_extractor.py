@@ -17,7 +17,7 @@ class GeminiExtractor:
         else:
             genai.configure(api_key=self.api_key)
             print(f"[DEBUG] Configured Gemini with Key: ...{self.api_key[-5:] if self.api_key else 'None'}")
-            self.model = genai.GenerativeModel('gemini-1.5-flash')
+            self.model = genai.GenerativeModel('gemini-2.5-flash')
 
     async def extract_prescription_data(self, image_bytes: bytes, mime_type: str = "image/jpeg", language: str = "English") -> Dict:
         """
@@ -86,7 +86,7 @@ class GeminiExtractor:
             data = json.loads(text_response.strip())
             
             # Add metadata to match the expected application format
-            data["ocr_engine"] = "gemini-1.5-flash"
+            data["ocr_engine"] = "gemini-2.5-flash"
              # Mock tokens as Gemini doesn't return per-token confidence in this mode easily
             data["tokens"] = [] 
             data["confidence_metrics"] = {

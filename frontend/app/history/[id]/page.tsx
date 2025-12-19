@@ -7,6 +7,7 @@ import { supabase } from "../../services/supabase";
 import AnalysisCard from "../../components/AnalysisCard";
 import { ArrowLeft, Pill, User, Calendar, FlaskConical } from "lucide-react";
 import { PrescriptionResponse } from "../../types/api";
+import { useAuth } from "../../context/AuthContext";
 
 interface ScanEntry {
     id: string;
@@ -18,6 +19,7 @@ interface ScanEntry {
 export default function HistoryDetailPage() {
     const params = useParams();
     const router = useRouter();
+    const { user } = useAuth();
     const [scan, setScan] = useState<ScanEntry | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -162,7 +164,7 @@ export default function HistoryDetailPage() {
                                     description={drug.description || drug.category || "No description available."}
                                     price={(drug.score ? (10 + (drug.score % 50)).toFixed(2) : "0.00")} // Consistent demo price logic
                                     stockStatus="IN STOCK" // Placeholder
-                                // You can pass the original target language if stored, otherwise defaults to English
+                                    targetLanguage={user?.user_metadata?.preferred_language || "English"}
                                 />
                             ))}
                         </div>
